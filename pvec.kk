@@ -18,7 +18,7 @@ pub value struct pvec<a>
 
 // Create a new empty vector.
 pub fun pvec/empty(): pvec<a>
-  Pvec(Node(new-vector(width), 0), zero32)
+  Pvec(Node(new-vector(2.ssize_t), 0), zero32)
 
 // Lookup the value at the given index.
 pub inline fun pvec/at( ^this : pvec<a>, index : int ): exn maybe<a>
@@ -65,7 +65,7 @@ type ptrie<a>
   Leaf ( values : vector<a>, size : int )
 
 fun ptrie/singleton-node( value : ptrie<a> ): ptrie<a>
-  Node(new-vector(width).updated-vector(0.int32, value), 1)
+  Node(new-vector(2.ssize_t).updated-vector(0.ssize_t, value), 1)
 
 fun ptrie/lookup( this : ptrie<a>, index : int32, depth: int32 ): exn maybe<a>
   val next = index.child-index(depth).int
@@ -84,18 +84,18 @@ fun ptrie/update( this : ptrie<a>, index : int32, value : a, depth : int32 ) : e
         if next >= size then ptrie/new-child(depth)
         else children[next]
       val new-child = child.update(index, value, pretend-decreasing(depth - one32))
-      Node(children.updated-vector(next.int32, new-child), ptrie/get-size(next, size))
+      Node(children.updated-vector(next.ssize_t, new-child), ptrie/get-size(next, size))
     Leaf( values, size ) ->
-      Leaf(values.updated-vector(next.int32, value), ptrie/get-size(next, size))
+      Leaf(values.updated-vector(next.ssize_t, value), ptrie/get-size(next, size))
 
 fun ptrie/child-index( index : int32, depth : int32 ): int32
   index.shr32(depth * bits).and(bit-mask)
 
 fun ptrie/new-child( depth : int32 ): ptrie<a>
   if depth > one32 then
-    Node(new-vector(width), 0)
+    Node(new-vector(2.ssize_t), 0)
   else
-    Leaf(new-vector(width), 0)
+    Leaf(new-vector(2.ssize_t), 0)
 
 fun ptrie/get-size( child-index : int, size : int ): int
   if child-index >= size
@@ -111,8 +111,8 @@ inline extern shl32( x : int32, y : int32 ): int32
 inline extern shr32( x : int32, y : int32 ): int32
   c inline "kk_shr32(#1, #2)"
 
-inline extern new-vector( n : int32 ): vector<a>
+inline extern new-vector( n : ssize_t ): vector<a>
   c inline "kk_vector_alloc(#1, kk_box_null(), kk_context())"
 
-inline fip extern updated-vector( v : vector<a>, i : int32, x : a ): vector<a>
+noinline fip extern updated-vector( v : vector<a>, i : ssize_t, x : a ): vector<a>
   c inline "kk_vector_updated(#1, #2, #3, kk_context())"

@@ -15,7 +15,7 @@ pub fun dlist/singleton( a: a ): dlist<a>
   Dlist(fn(xs) Cons(a, xs))
 
 // Append an element to a difference list.
-pub fun dlist/snoc( l: dlist<a>, a: a ): dlist<a>
+pub inline fun dlist/snoc( l: dlist<a>, a: a ): dlist<a>
   l.append(a.singleton)
 
 // Concatenate two difference lists.
@@ -23,7 +23,7 @@ pub fun dlist/append( l1: dlist<a>, l2: dlist<a> ): dlist<a>
   Dlist(l1.f.o(l2.f))
 
 // Convert a difference list to a list.
-pub fun dlist/list( l: dlist<a> ): list<a>
+pub inline fun dlist/list( l: dlist<a> ): list<a>
   l.f.apply(Nil)
 
 // Convert a list to a difference list.

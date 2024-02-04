@@ -10,6 +10,10 @@ pub value struct seq<a>
 pub inline fun seq/empty() : seq<a>
   Seq(Empty)
 
+// Create a sequence with a single element.
+pub inline fun seq/singleton( x : a ) : seq<a>
+  Seq(Single(Elem(x)))
+
 // Append an element to the sequence.
 pub fun seq/snoc( this : seq<a>, x : a ) : seq<a>
   val Seq(root) = this
@@ -32,7 +36,7 @@ pub fun seq/modify( this : seq<a>, i : int, f : a -> <exn|e> a ) : <exn|e> seq<a
   Seq(root.modify(i, fn(Elem(x)) Elem(f(x))))
 
 // Update the element at the given index.
-pub fun seq/update( this : seq<a>, i : int, x : a ) : exn seq<a>
+pub inline fun seq/update( this : seq<a>, i : int, x : a ) : exn seq<a>
   this.modify(i, fn(_) x)
 
 // Map a function over the sequence.

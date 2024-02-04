@@ -21,8 +21,12 @@ pub value struct pvec<a>
 pub fun pvec/empty(): pvec<a>
   Pvec(Node(new-vector(default-cap), zero32), zero32)
 
+// Create a vector with a single value.
+pub inline fun pvec/singleton( value : a ): pvec<a>
+  pvec/empty().snoc(value)
+
 // Lookup the value at the given index.
-pub fun pvec/at( ^this : pvec<a>, index : int ): maybe<a>
+pub inline fun pvec/at( ^this : pvec<a>, index : int ): maybe<a>
   this.root.at(index.int32, depth-by-len(this.len))
 
 // Update the value at the given index.
@@ -111,10 +115,10 @@ fip fun depth-by-len( len : int32 ): int32
     b / bits + (b % bits > zero32).int32 - one32
   else zero32
 
-fip fun index-by-depth( index : int32, depth : int32 ): int32
+inline fip fun index-by-depth( index : int32, depth : int32 ): int32
   index.shr32(depth * bits).and(bit-mask)
 
-fip fun updated-trie-size( child-index : int32, size : int32 ): int32
+inline fip fun updated-trie-size( child-index : int32, size : int32 ): int32
   if child-index >= size
   then child-index + one32
   else size

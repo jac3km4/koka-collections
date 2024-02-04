@@ -17,8 +17,17 @@ pub value struct map<k, v>
 pub fun map/empty(): map<k, v>
   Map(Table(new-vector(default-cap), zero32), 0)
 
+// Create a map with a single key-value pair.
+pub inline fun map/singleton(
+  key : k,
+  value : v,
+  ?cmp: (k, k) -> order,
+  ?hash: (k, int32) -> int32
+): map<k, v>
+  map/empty().insert(key, value)
+
 // Lookup a value in the map.
-pub fun map/get(
+pub inline fun map/get(
   ^this : map<k, v>,
   key : k,
   ?cmp: (k, k) -> order,

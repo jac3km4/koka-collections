@@ -17,6 +17,11 @@ fun list/at( xs: list<a>, i: int ): exn a
       else
         xs.at(i - 1)
 
+fun viewr-sum-seq( seq: seq<int>, acc : int ) : div int
+  match seq.viewr
+    SnocR(xs, x) -> viewr-sum-seq(xs, acc + x)
+    EmptyR -> acc
+
 // Dummy hash function used for the map.
 pub fun hash( x : int, seed : int32 ) : int32
   x.int32 * (2654435761.int32 + seed)
@@ -71,5 +76,11 @@ pub fun main()
 
   measured("map of 10000000 to list")
     m.list
+
+  measured("viewr sum of a seq x 10000000")
+    viewr-sum-seq(s, 0)
+
+  measured("foldl sum of a seq x 10000000")
+    s.foldl(0, fn(x, acc) x + acc)
 
   ()

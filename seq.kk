@@ -376,10 +376,12 @@ value type elem<a>
 inline fbip fun elem/size( this : elem<a> ) : int
   1
 
+// A view of the left end of a sequence.
 pub value type viewl<a>
   EmptyL
   ConsL( head : a, tail : seq<a> )
 
+// A view of the right end of a sequence.
 pub value type viewr<a>
   EmptyR
   SnocR( init : seq<a>, last : a )

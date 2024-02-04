@@ -28,15 +28,3 @@ pub noinline fip extern update-vector( v : vector<a>, i : int32, x : a ): vector
 
 pub noinline fip extern insert-vector( v : vector<a>, i : int32, x : a ): vector<a>
   c inline "vector_insert(#1, #2, #3, kk_context())"
-
-pub noinline fip extern murmur3-hash( s : string, seed : int32 ): int32
-  c inline "murmur3_32(kk_string_cbuf_borrow(#1, NULL, kk_context()), kk_string_len_borrow(#1, kk_context()), #2)"
-
-
-
-
-
-
-
-
-

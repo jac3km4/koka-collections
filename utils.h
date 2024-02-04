@@ -1,40 +1,5 @@
 #include <kklib.h>
 
-static inline int32_t murmur_32_scramble(int32_t k) {
-  k *= 0xcc9e2d51;
-  k = (k << 15) | (k >> 17);
-  k *= 0x1b873593;
-  return k;
-}
-
-static inline int32_t murmur3_32(const char *key, size_t len, int32_t seed) {
-  int32_t h = seed;
-  int32_t k;
-  /* Read in groups of 4. */
-  for (size_t i = len >> 2; i; i--) {
-    memcpy(&k, key, sizeof(int32_t));
-    key += sizeof(int32_t);
-    h ^= murmur_32_scramble(k);
-    h = (h << 13) | (h >> 19);
-    h = h * 5 + 0xe6546b64;
-  }
-  /* Read the rest. */
-  k = 0;
-  for (size_t i = len & 3; i; i--) {
-    k <<= 8;
-    k |= key[i - 1];
-  }
-  h ^= murmur_32_scramble(k);
-  /* Finalize. */
-  h ^= len;
-  h ^= h >> 16;
-  h *= 0x85ebca6b;
-  h ^= h >> 13;
-  h *= 0xc2b2ae35;
-  h ^= h >> 16;
-  return h;
-}
-
 static inline kk_vector_t vector_insert(kk_vector_t vec, size_t index,
                                         kk_box_t elem, kk_context_t *ctx) {
   size_t old_len = kk_vector_len_borrow(vec, ctx);

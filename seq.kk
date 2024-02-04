@@ -41,14 +41,14 @@ pub fun seq/map( this : seq<a>, ^f : a -> e b ) : e seq<b>
   Seq(root.map(fn(Elem(x)) Elem(f(x))))
 
 // Fold over the sequence from left to right.
-pub fun seq/foldl( this : seq<a>, i : b, ^f : (b, a) -> e b ) : e b
+pub fun seq/foldl( this : seq<a>, z : b, ^f : (b, a) -> e b ) : e b
   val Seq(root) = this
-  root.foldl(i, fn(i', Elem(x)) f(i', x))
+  root.foldl(z, fn(i, Elem(x)) f(i, x))
 
 // Fold over the sequence from right to left.
-pub fun seq/foldr( this : seq<a>, i : b, ^f : (a, b) -> e b ) : e b
+pub fun seq/foldr( this : seq<a>, z : b, ^f : (a, b) -> e b ) : e b
   val Seq(root) = this
-  root.foldr(i, fn(Elem(x), i') f(x, i'))
+  root.foldr(z, fn(Elem(x), i) f(x, i))
 
 // Convert the sequence to a list.
 pub inline fun seq/list( this : seq<a> ): list<a>

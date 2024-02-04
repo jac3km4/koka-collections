@@ -41,8 +41,28 @@ pub fun map/insert(
   else
     Map(table', size)
 
+// Fold over the elements of the map.
+pub inline fun map/foldl( this : map<k, v>, z : a, f : (a, k, v) -> e a ): e a
+  Tab(this.table).foldl(z, f)
+
+// Fold over the elements of the map.
+pub inline fun map/foldr( this : map<k, v>, z : a, f : (k, v, a) -> e a ): e a
+  Tab(this.table).foldr(z, f)
+
+// Invoke a function for each element in the map.
+pub inline fun map/foreach( ^this : map<k, v>, f : (k, v) -> e unit ): e unit
+  Tab(this.table).foreach(f)
+
+// Convert the map to a list of key-value pairs.
+pub fun map/list( this : map<k, v> ): list<(k, v)>
+  this.foldr(Nil) fn(k, v, acc) Cons((k, v), acc)
+
+// Convert a list of key-value pairs to a map.
+pub fun list/map( l : list<(k, v)>, ?cmp: (k, k) -> order, ?hash: (k, int32) -> int32 ): map<k, v>
+  l.foldl(map/empty()) fn(acc, (k, v)) acc.insert(k, v)
+
 // Get the number of elements in the map.
-pub fun map/length( ^this : map<k, v> ): int
+pub inline fun map/length( ^this : map<k, v> ): int
   this.size
 
 struct table<k, v>
@@ -57,19 +77,16 @@ tail fun table/search(
 ): maybe<v>
   val Table(nodes, index) = this
   val expected-index = state.get-index
-  if node-has-index(index, expected-index) then
-    val pos = get-entry-pos(expected-index, index)
+  if index-contains(index, expected-index) then
+    val pos = index-entry-pos(expected-index, index)
     match vector-at(nodes, pos)
-      KeyVal(k, v) ->
-        if cmp(k, state.key) == Eq
-        then Just(v)
-        else Nothing
-      Tab(tab) ->
-        tab.search(pretend-decreasing(state.next))
+      KeyVal(k, v) | cmp(k, state.key) == Eq -> Just(v)
+      KeyVal(_, _) -> Nothing
+      Tab(tab) -> tab.search(pretend-decreasing(state.next))
   else
     Nothing
 
-tail fun table/insert(
+fun table/insert(
   this : table<k, v>,
   state : hash-state<k>,
   value : v,
@@ -78,8 +95,8 @@ tail fun table/insert(
 ): (table<k, v>, bool)
   val Table(nodes, index) = this
   val expected-index = state.get-index
-  if node-has-index(index, expected-index) then
-    val pos = get-entry-pos(expected-index, index)
+  if index-contains(index, expected-index) then
+    val pos = index-entry-pos(expected-index, index)
     match vector-at(nodes, pos)
       KeyVal(key', value') ->
         if cmp(key', state.key) == Eq then
@@ -90,10 +107,11 @@ tail fun table/insert(
           val tab = table/new(existing, value', state, value)
           (Table(nodes.update-vector(pos, Tab(tab)), index), True)
       Tab(tab) ->
-        tab.insert(pretend-decreasing(state.next), value)
+        val (tab', added) = tab.insert(pretend-decreasing(state.next), value)
+        (Table(nodes.update-vector(pos, Tab(tab')), index), added)
   else
     val new-index = index.or(one32.shl32(expected-index))
-    val pos = get-entry-pos(expected-index, new-index)
+    val pos = index-entry-pos(expected-index, new-index)
     val vec = nodes.insert-vector(pos, KeyVal(state.key, value))
     (Table(vec, new-index), True)
 
@@ -115,13 +133,35 @@ fun table/new(
   else
     val index' = node-index.or(one32.shl32(existing-index))
     val vec = new-vector(two32)
-      .update-vector(get-entry-pos(existing-index, index'), KeyVal(existing.key, existing-value))
-      .update-vector(get-entry-pos(new-index, index'), KeyVal(new.key, new-value))
+      .update-vector(index-entry-pos(existing-index, index'), KeyVal(existing.key, existing-value))
+      .update-vector(index-entry-pos(new-index, index'), KeyVal(new.key, new-value))
     Table(vec, index')
 
 type node<k, v>
   KeyVal ( key : k, value : v )
   Tab ( table : table<k, v> )
+
+fun node/foldl( this : node<k, v>, z : a, f : (a, k, v) -> e a ): e a
+  match this
+    KeyVal(key, value) -> f(z, key, value)
+    Tab(Table(nodes, index)) ->
+      range/fold(0, index.index-size, z) fn(i, acc)
+        pretend-decreasing(nodes.vector-at(i.int32)).foldl(acc, f)
+
+fun node/foldr( this : node<k, v>, z : a, f : (k, v, a) -> e a ): e a
+  match this
+    KeyVal(key, value) -> f(key, value, z)
+    Tab(Table(nodes, index)) ->
+      val len = index.index-size
+      range/fold(0, len, z) fn(i, acc)
+        pretend-decreasing(nodes.vector-at((len - i - 1).int32)).foldr(acc, f)
+
+fun node/foreach( ^this : node<k, v>, f : (k, v) -> e unit ): e unit
+  match this
+    KeyVal(key, value) -> f(key, value)
+    Tab(tab) ->
+      for(tab.index.index-size) fn(i)
+        pretend-decreasing(tab.nodes.vector-at(i.int32)).foreach(f)
 
 type hash-state<k>
   HashState
@@ -143,8 +183,11 @@ fun hash-state/next( this : hash-state<k>, ?hash: (k, int32) -> int32 ): hash-st
 fun hash-state/get-index( ^this : hash-state<k> ): int32
   this.hash.shr32(this.shift).and(0x1f.int32)
 
-fun get-entry-pos( index : int32, bitmap : int32 ): int32
+fip fun index-entry-pos( index : int32, bitmap : int32 ): int32
   bitmap.and(one32.shl32(index) - one32).popcount32
 
-fun node-has-index( index : int32, i : int32 ): bool
+fip fun index-contains( index : int32, i : int32 ): bool
   index.and(one32.shl32(i)).bool
+
+fip fun index-size( index : int32 ): int
+  index.popcount

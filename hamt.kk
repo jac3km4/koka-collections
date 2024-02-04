@@ -106,18 +106,19 @@ fun table/insert(
   val expected-index = state.get-index
   if index-contains(index, expected-index) then
     val pos = index-entry-pos(expected-index, index)
-    match vector-at(nodes, pos)
+    val (node, added) = match vector-at(nodes, pos)
       KeyVal(key', value') ->
         if cmp(key', state.key) == Eq then
-          (Table(nodes.update-vector(pos, KeyVal(key', value)), index), False)
+          (KeyVal(key', value), False)
         else
           val existing-hash = hash(key', state.depth / 5.int32)
           val existing = HashState(key', existing-hash, state.depth, state.shift)
           val tab = table/new(existing, value', state, value)
-          (Table(nodes.update-vector(pos, Tab(tab)), index), True)
+          (Tab(tab), True)
       Tab(tab) ->
         val (tab', added) = tab.insert(pretend-decreasing(state.next), value)
-        (Table(nodes.update-vector(pos, Tab(tab')), index), added)
+        (Tab(tab'), added)
+    (Table(nodes.update-vector(pos, node), index), added)
   else
     val new-index = index.or(one32.shl32(expected-index))
     val pos = index-entry-pos(expected-index, new-index)

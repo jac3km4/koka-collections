@@ -62,6 +62,18 @@ pub inline fun seq/list( this : seq<a> ): list<a>
 pub inline fun list/seq( list : list<a> ) : seq<a>
   list.foldl(seq/empty(), seq/snoc)
 
+// Analyze the sequence as a view from the left.
+pub fun seq/viewl( this : seq<a> ) : viewl<a>
+  match this.root.viewl
+    TreeEmptyL -> EmptyL
+    TreeConsL(Elem(x), xs) -> ConsL(x, Seq(xs))
+
+// Analyze the sequence as a view from the right.
+pub fun seq/viewr( this : seq<a> ) : viewr<a>
+  match this.root.viewr
+    TreeEmptyR -> EmptyR
+    TreeSnocR(xs, Elem(x)) -> SnocR(Seq(xs), x)
+
 // Get the length of the sequence.
 pub inline fun seq/length( ^this : seq<a> ) : int
   this.root.size
@@ -156,6 +168,40 @@ fun tree/foldr( this : tree<a>, i : b, ^f : (a, b) -> e b ) : e b
       val i'' = m.foldr(i', fn(x, i''') x.foldr(i''', f))
       l.foldr(i'', f)
 
+fun tree/viewl( this : tree<a>, ?size: a -> int ) : tree-viewl<a>
+  match this
+    Empty -> TreeEmptyL
+    Single(x) -> TreeConsL(x, Empty)
+    Deep(s, One(a), m, r) ->
+      val s' = s - a.size
+      val m' = match m.viewl
+        TreeEmptyL -> r.to-sized-tree(s')
+        TreeConsL(x, xs) -> Deep(s', x.to-digit, xs, r)
+      TreeConsL(a, m')
+    Deep(s, Two(a, b), m, r) ->
+      TreeConsL(a, Deep(s - a.size, One(b), m, r))
+    Deep(s, Three(a, b, c), m, r) ->
+      TreeConsL(a, Deep(s - a.size, Two(b, c), m, r))
+    Deep(s, Four(a, b, c, d), m, r) ->
+      TreeConsL(a, Deep(s - a.size, Three(b, c, d), m, r))
+
+fun tree/viewr( this : tree<a>, ?size: a -> int ) : tree-viewr<a>
+  match this
+    Empty -> TreeEmptyR
+    Single(x) -> TreeSnocR(Empty, x)
+    Deep(s, l, m, One(a)) ->
+      val s' = s - a.size
+      val m' = match m.viewr
+        TreeEmptyR -> l.to-sized-tree(s')
+        TreeSnocR(xs, x) -> Deep(s', l, xs, x.to-digit)
+      TreeSnocR(m', a)
+    Deep(s, l, m, Two(a, b)) ->
+      TreeSnocR(Deep(s - b.size, l, m, One(a)), b)
+    Deep(s, l, m, Three(a, b, c)) ->
+      TreeSnocR(Deep(s - c.size, l, m, Two(a, b)), c)
+    Deep(s, l, m, Four(a, b, c, d)) ->
+      TreeSnocR(Deep(s - d.size, l, m, Three(a, b, c)), d)
+
 type node<a>
   Tuple( fst : a, snd : a )
   Triple( fst : a, snd : a, thd : a )
@@ -215,6 +261,11 @@ fbip fun node/foldr( this : node<a>, i : b, ^f : (a, b) -> e b ) : e b
   match this
     Tuple(x, y) -> f(x, f(y, i))
     Triple(x, y, z) -> f(x, f(y, f(z, i)))
+
+fip fun node/to-digit( this : node<a> ) : digit<a>
+  match this
+    Tuple(x, y) -> Two(x, y)
+    Triple(x, y, z) -> Three(x, y, z)
 
 type digit<a>
   One( fst : a )
@@ -312,8 +363,31 @@ fbip fun digit/foldr( this : digit<a>, i : b, ^f : (a, b) -> e b ) : e b
     Three(x, y, z) -> f(x, f(y, f(z, i)))
     Four(x, y, z, w) -> f(x, f(y, f(z, f(w, i))))
 
+fbip(3) fun digit/to-sized-tree( this : digit<a>, n : int ) : tree<a>
+  match this
+    One(x) -> Single(x)
+    Two(x, y) -> Deep(n, One(x), Empty, One(y))
+    Three(x, y, z) -> Deep(n, Two(x, y), Empty, One(z))
+    Four(x, y, z, w) -> Deep(n, Two(x, y), Empty, Two(z, w))
+
 value type elem<a>
   Elem( value : a )
 
 inline fbip fun elem/size( this : elem<a> ) : int
   1
+
+pub value type viewl<a>
+  EmptyL
+  ConsL( head : a, tail : seq<a> )
+
+pub value type viewr<a>
+  EmptyR
+  SnocR( init : seq<a>, last : a )
+
+value type tree-viewl<a>
+  TreeEmptyL
+  TreeConsL( head : a, tail : tree<a> )
+
+value type tree-viewr<a>
+  TreeEmptyR
+  TreeSnocR( init : tree<a>, last : a )

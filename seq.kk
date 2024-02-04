@@ -64,13 +64,15 @@ pub inline fun list/seq( list : list<a> ) : seq<a>
 
 // Analyze the sequence as a view from the left.
 pub fun seq/viewl( this : seq<a> ) : viewl<a>
-  match this.root.viewl
+  val Seq(root) = this
+  match root.viewl
     TreeEmptyL -> EmptyL
     TreeConsL(Elem(x), xs) -> ConsL(x, Seq(xs))
 
 // Analyze the sequence as a view from the right.
 pub fun seq/viewr( this : seq<a> ) : viewr<a>
-  match this.root.viewr
+  val Seq(root) = this
+  match root.viewr
     TreeEmptyR -> EmptyR
     TreeSnocR(xs, Elem(x)) -> SnocR(Seq(xs), x)
 

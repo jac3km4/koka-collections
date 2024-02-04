@@ -1,7 +1,8 @@
+module dlist
 
 // A difference list data structure based on Haskell's Data.DList.
 // Supports O(1) append and snoc operations.
-// See https://hackage.haskell.org/package/dlist-1.0/docs/Data-DList.html
+// See https://wiki.haskell.org/Difference_list for details.
 pub value struct dlist<a>
   f: list<a> -> list<a>
 
@@ -22,9 +23,9 @@ pub fun dlist/append( l1: dlist<a>, l2: dlist<a> ): dlist<a>
   Dlist(l1.f.o(l2.f))
 
 // Convert a difference list to a list.
-pub inline fun dlist/list( l: dlist<a> ): list<a>
+pub fun dlist/list( l: dlist<a> ): list<a>
   l.f.apply(Nil)
 
 // Convert a list to a difference list.
-pub inline fun list/dlist( l: list<a> ): dlist<a>
+pub fun list/dlist( l: list<a> ): dlist<a>
   Dlist(fn(xs) xs ++ l)

@@ -125,7 +125,7 @@ fun tree/at( ^this : tree<a>, ^i : int, ?size: a -> int ) : maybe<(a, int)>
       val ls = l.size
       if i < ls then
         Just(l.at(i))
-      else if i < ls + m.size then
+      elif i < ls + m.size then
         match m.at(i - ls)
           Just((x, i')) -> Just(x.at(i'))
           Nothing -> Nothing
@@ -140,7 +140,7 @@ fun tree/modify( this : tree<a>, i : int, f : a -> e a, ?size: a -> int ) : e tr
       val ls = l.size
       if i < ls then
         Deep(s, l.modify(i, f), m, r)
-      else if i < ls + m.size then
+      elif i < ls + m.size then
         Deep(s, l, m.modify(i - ls, fn(x) x.modify(i, f)), r)
       else
         Deep(s, l, m, r.modify(i - ls - m.size, f))
@@ -226,7 +226,7 @@ fun node/at( ^this : node<a>, ^i : int, ?size: a -> int ) : (a, int)
       val ys = y.size
       if i < xs then
         (x, i)
-      else if i < xs + ys then
+      elif i < xs + ys then
         (y, i - xs)
       else
         (z, i - xs - ys)
@@ -244,7 +244,7 @@ fun node/modify( this : node<a>, i : int, f : a -> e a, ?size: a -> int ) : e no
       val ys = y.size
       if i < xs then
         Triple(f(x), y, z)
-      else if i < xs + ys then
+      elif i < xs + ys then
         Triple(x, f(y), z)
       else
         Triple(x, y, f(z))
@@ -296,7 +296,7 @@ fun digit/at( ^this : digit<a>, ^i : int, ?size: a -> int ) : (a, int)
       val ys = y.size
       if i < xs then
         (x, i)
-      else if i < xs + ys then
+      elif i < xs + ys then
         (y, i - xs)
       else
         (z, i - xs - ys)
@@ -306,9 +306,9 @@ fun digit/at( ^this : digit<a>, ^i : int, ?size: a -> int ) : (a, int)
       val zs = z.size
       if i < xs then
         (x, i)
-      else if i < xs + ys then
+      elif i < xs + ys then
         (y, i - xs)
-      else if i < xs + ys + zs then
+      elif i < xs + ys + zs then
         (z, i - xs - ys)
       else
         (w, i - xs - ys - zs)
@@ -327,7 +327,7 @@ fun digit/modify( this : digit<a>, i : int, f : a -> e a, ?size: a -> int ) : e 
       val ys = y.size
       if i < xs then
         Three(f(x), y, z)
-      else if i < xs + ys then
+      elif i < xs + ys then
         Three(x, f(y), z)
       else
         Three(x, y, f(z))
@@ -337,9 +337,9 @@ fun digit/modify( this : digit<a>, i : int, f : a -> e a, ?size: a -> int ) : e 
       val zs = z.size
       if i < xs then
         Four(f(x), y, z, w)
-      else if i < xs + ys then
+      elif i < xs + ys then
         Four(x, f(y), z, w)
-      else if i < xs + ys + zs then
+      elif i < xs + ys + zs then
         Four(x, y, f(z), w)
       else
         Four(x, y, z, f(w))

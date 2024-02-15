@@ -33,19 +33,19 @@ fun measured( label : string, f: () -> <ndet,console|e> a ): <ndet,console|e> a
 
 pub fun main()
   val l = measured("list cons x 10000000 + reverse")
-    reverse(range/fold(0, 10000000, Nil) fn(e, acc) Cons(e, acc))
+    reverse(fold(10000000, Nil) fn(e, acc) Cons(e, acc))
 
   val _ = measured("dlist snoc x 10000000 + list")
-    dlist/list(range/fold(0, 10000000, dlist/empty()) fn(e, acc) acc.snoc(e))
+    dlist/list(fold(10000000, dlist/empty()) fn(e, acc) acc.snoc(e))
 
   val s = measured("seq snoc x 10000000")
-    range/fold(0, 10000000, seq/empty()) fn(e, acc) acc.snoc(e)
+    fold(10000000, seq/empty()) fn(e, acc) acc.snoc(e)
 
   val v = measured("pvec snoc x 10000000")
-    range/fold(0, 10000000, pvec/empty()) fn(e, acc) acc.snoc(e)
+    fold(10000000, pvec/empty()) fn(e, acc) acc.snoc(e)
 
   val m = measured("map insert x 10000000")
-    range/fold(0, 10000000, map/empty()) fn(e, acc) acc.insert(e, e)
+    fold(10000000, map/empty()) fn(e, acc) acc.insert(e, e)
   
   measured("map over a list of 10000000")
     l.map(fn(x) x + 1)

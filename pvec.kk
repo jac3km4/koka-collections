@@ -47,14 +47,14 @@ pub fbip(n) fun pvec/snoc( this : pvec<a>, value : a ): pvec<a>
 
 // Fold over the vector from left to right.
 pub fun pvec/foldl( ^this : pvec<a>, init : b, f : (b, a) -> b ): b
-  range/fold(0, this.length, init) fn(i, acc)
+  fold(this.length, init) fn(i, acc)
     match this.at(i)
       Just(x) -> f(acc, x)
       Nothing -> acc
 
 // Fold over the vector from right to left.
 pub fun pvec/foldr( ^this : pvec<a>, init : b, f : (a, b) -> b ): b
-  range/fold(0, this.length, init) fn(i, acc)
+  fold(0, this.length, init) fn(i, acc)
     match this.at(this.length - i - 1)
       Just(x) -> f(x, acc)
       Nothing -> acc

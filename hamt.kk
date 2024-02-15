@@ -155,7 +155,7 @@ fun node/foldl( this : node<k, v>, z : a, f : (a, k, v) -> e a ): e a
   match this
     KeyVal(key, value) -> f(z, key, value)
     Tab(Table(nodes, index)) ->
-      range/fold(0, index.index-size, z) fn(i, acc)
+      fold(index.index-size, z) fn(i, acc)
         pretend-decreasing(nodes.vector-at(i.int32)).foldl(acc, f)
 
 fun node/foldr( this : node<k, v>, z : a, f : (k, v, a) -> e a ): e a
@@ -163,7 +163,7 @@ fun node/foldr( this : node<k, v>, z : a, f : (k, v, a) -> e a ): e a
     KeyVal(key, value) -> f(key, value, z)
     Tab(Table(nodes, index)) ->
       val len = index.index-size
-      range/fold(0, len, z) fn(i, acc)
+      fold(len, z) fn(i, acc)
         pretend-decreasing(nodes.vector-at((len - i - 1).int32)).foldr(acc, f)
 
 fun node/foreach( ^this : node<k, v>, f : (k, v) -> e unit ): e unit
@@ -173,7 +173,7 @@ fun node/foreach( ^this : node<k, v>, f : (k, v) -> e unit ): e unit
       for(tab.index.index-size) fn(i)
         pretend-decreasing(tab.nodes.vector-at(i.int32)).foreach(f)
 
-type hash-state<k>
+value type hash-state<k>
   HashState
     key : k
     hash : int32
